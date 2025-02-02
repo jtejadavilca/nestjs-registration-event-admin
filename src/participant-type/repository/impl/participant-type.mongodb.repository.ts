@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import { ParticipantTypeRepository } from '../participant-type.repository';
 import { ParticipantType } from 'src/participant-type/entities/participant-type.entity';
 

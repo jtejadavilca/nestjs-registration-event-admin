@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { ParticipantRepository } from './repository/participant.repository';
+import { Participant } from './entities/participant.entity';
+import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class ParticipantService {
-  create(createParticipantDto: CreateParticipantDto) {
-    return 'This action adds a new participant';
+  constructor(private readonly participantRepository: ParticipantRepository) {}
+
+  async findAll(): Promise<Participant[]> {
+    return this.participantRepository.findAll();
   }
 
-  findAll() {
-    return `This action returns all participant`;
+  async findOne(id: number): Promise<Participant> {
+    const participant = await this.participantRepository.findOne(id);
+    if (!participant) {
+      throw new NotFoundException(`Participant with id ${id} not found`);
+    }
+    return participant;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} participant`;
+  async create(
+    createParticipantDto: CreateParticipantDto,
+  ): Promise<Participant> {
+    try {
+      return await this.participantRepository.create(createParticipantDto);
+    } catch (ex) {
+      if (ex instanceof QueryFailedError) {
+        const errorMsg = `Error: participant with email (${createParticipantDto.email}) already exists`;
+        console.error(errorMsg);
+        throw new BadRequestException(errorMsg);
+      }
+      throw new Error('Error creating participant');
+    }
   }
 
-  update(id: number, updateParticipantDto: UpdateParticipantDto) {
-    return `This action updates a #${id} participant`;
+  async update(
+    id: number,
+    updateParticipantDto: UpdateParticipantDto,
+  ): Promise<Participant | null> {
+    return this.participantRepository.update(id, updateParticipantDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} participant`;
+  async delete(id: number): Promise<void> {
+    return this.participantRepository.delete(id);
   }
 }

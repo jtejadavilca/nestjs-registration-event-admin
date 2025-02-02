@@ -20,7 +20,7 @@ import { ParticipantModule } from './participant/participant.module';
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-        logging: true,
+        logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
     ParticipantTypeModule,

@@ -22,8 +22,11 @@ export class Participant {
   @Column({ type: 'text', nullable: false })
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
-  price: number;
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
+  email: string;
+
+  @Column({ type: 'varchar', length: 50 })
+  phone: string;
 
   @ManyToOne(
     () => ParticipantType,
@@ -36,12 +39,12 @@ export class Participant {
   @JoinColumn({ name: 'participant_type_id' })
   participantType: ParticipantType;
 
-  @ManyToOne(() => User, (user) => user.participants, {
-    nullable: false,
-    eager: true,
-  })
-  @JoinColumn({ name: 'created_by' })
-  createdBy: User;
+  // @ManyToOne(() => User, (user) => user.participants, {
+  //   nullable: false,
+  //   eager: true,
+  // })
+  // @JoinColumn({ name: 'created_by' })
+  // createdBy: User;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

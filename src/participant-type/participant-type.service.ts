@@ -1,7 +1,13 @@
 // src/participants/services/participant-type.service.ts
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ParticipantType } from './entities/participant-type.entity';
 import { ParticipantTypeRepository } from './repository/participant-type.repository';
+import { CreateParticipantTypeDto } from './dto/create-participant-type.dto';
+import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class ParticipantTypeService {
@@ -14,13 +20,29 @@ export class ParticipantTypeService {
   }
 
   async findOne(id: number): Promise<ParticipantType | null> {
-    return this.participantTypeRepository.findOne(id);
+    const participantType = await this.participantTypeRepository.findOne(id);
+
+    if (!participantType) {
+      throw new NotFoundException(`Participant type with id ${id} not found`);
+    }
+    return participantType;
   }
 
   async create(
-    participantType: Partial<ParticipantType>,
+    createParticipantTypeDto: CreateParticipantTypeDto,
   ): Promise<ParticipantType> {
-    return this.participantTypeRepository.create(participantType);
+    try {
+      return await this.participantTypeRepository.create(
+        createParticipantTypeDto,
+      );
+    } catch (ex) {
+      if (ex instanceof QueryFailedError) {
+        const errorMsg = `Error: participant type (${createParticipantTypeDto.name}) already exists`;
+        console.error(errorMsg);
+        throw new BadRequestException(errorMsg);
+      }
+      throw new Error('Error creating participant type');
+    }
   }
 
   async update(

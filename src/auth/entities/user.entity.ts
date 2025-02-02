@@ -12,6 +12,6 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: false })
   password: string;
 
-  @OneToMany(() => Participant, (participant) => participant.createdBy)
-  participants: Participant[];
+  // @OneToMany(() => Participant, (participant) => participant.createdBy)
+  // participants: Participant[];
 }
