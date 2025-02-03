@@ -8,10 +8,15 @@ import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { ParticipantRepository } from './repository/participant.repository';
 import { Participant } from './entities/participant.entity';
 import { QueryFailedError } from 'typeorm';
+import { KafkaConstants } from 'src/kafka/kafka-constants';
+import { KafkaProducerService } from 'src/kafka/producer/kafka-producer.service';
 
 @Injectable()
 export class ParticipantService {
-  constructor(private readonly participantRepository: ParticipantRepository) {}
+  constructor(
+    private readonly participantRepository: ParticipantRepository,
+    private readonly kafkaProducerService: KafkaProducerService<Participant>,
+  ) {}
 
   async findAll(): Promise<Participant[]> {
     return this.participantRepository.findAll();
@@ -29,7 +34,13 @@ export class ParticipantService {
     createParticipantDto: CreateParticipantDto,
   ): Promise<Participant> {
     try {
-      return await this.participantRepository.create(createParticipantDto);
+      const part =
+        await this.participantRepository.create(createParticipantDto);
+      await this.kafkaProducerService.publishEvent(
+        KafkaConstants.TOPIC_CREATE_PARTICIPANT,
+        part,
+      );
+      return part;
     } catch (ex) {
       if (ex instanceof QueryFailedError) {
         const errorMsg = `Error: participant with email (${createParticipantDto.email}) already exists`;

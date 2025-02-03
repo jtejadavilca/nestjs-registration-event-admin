@@ -8,11 +8,14 @@ import { ParticipantType } from './entities/participant-type.entity';
 import { ParticipantTypeRepository } from './repository/participant-type.repository';
 import { CreateParticipantTypeDto } from './dto/create-participant-type.dto';
 import { QueryFailedError } from 'typeorm';
+import { KafkaProducerService } from 'src/kafka/producer/kafka-producer.service';
+import { KafkaConstants } from 'src/kafka/kafka-constants';
 
 @Injectable()
 export class ParticipantTypeService {
   constructor(
     private readonly participantTypeRepository: ParticipantTypeRepository,
+    private readonly kafkaProducerService: KafkaProducerService<ParticipantType>,
   ) {}
 
   async findAll(): Promise<ParticipantType[]> {
@@ -32,9 +35,15 @@ export class ParticipantTypeService {
     createParticipantTypeDto: CreateParticipantTypeDto,
   ): Promise<ParticipantType> {
     try {
-      return await this.participantTypeRepository.create(
+      const pt = await this.participantTypeRepository.create(
         createParticipantTypeDto,
       );
+      await this.kafkaProducerService.publishEvent(
+        KafkaConstants.TOPIC_CREATE_PARTICIPANT_TYPE,
+        pt,
+      );
+
+      return pt;
     } catch (ex) {
       if (ex instanceof QueryFailedError) {
         const errorMsg = `Error: participant type (${createParticipantTypeDto.name}) already exists`;

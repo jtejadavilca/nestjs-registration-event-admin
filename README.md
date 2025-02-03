@@ -20,6 +20,19 @@ Project using NestJS+TypeORM+Postgres with teaching purposal. It is going to be 
 $ docker compose up -d
 ```
 
+- Create kafka topic using:
+
+```bash
+# Enter in kafka container
+$ docker exec -it kafka-events-admin /bin/bash
+
+# Create topic
+$ kafka-topics --create --topic event-create-participant --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+
+# Confirm if topic was created
+$ kafka-topics --list --bootstrap-server localhost:9092
+```
+
 - Install dependencies
 
 ```bash
